@@ -2,6 +2,91 @@ package translation;
 
 import javax.swing.*;
 import java.awt.event.*;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+
+import static jdk.internal.org.jline.utils.InfoCmp.Capability.lines;
+
+// create a
+public class Gui_new {
+    public static void main(String[] args) throws URISyntaxException, IOException {
+
+        JComboBox<String> languageComboBox = new JComboBox<>();
+        // add items into this box
+
+        JPanel middlePanel = new JPanel();
+        JLabel translationLabel = new JLabel("Translation:");
+        middlePanel.add(translationLabel);
+        JLabel resultLabel = new JLabel("\t\t\t\t\t\t\t");
+        middlePanel.add(resultLabel);
+
+        JList<String> countriesJList = new JList<>();
+        // add countries to this list
+
+
+        // method to get all the country names from the country-codes file
+        // this is for the JList
+        public LinkedList<String> CountryCodeConverter() {
+
+            List<String> countries = new LinkedList<>();
+            try {
+                List<String> lines = Files.readAllLines(Paths.get(Gui_new.class
+                        .getClassLoader().getResource("country-codes.txt").toURI()));
+            }
+            Iterator<String> iterator = lines.iterator();
+            iterator.next(); // skip the first line
+            while (iterator.hasNext()) {
+                String line = iterator.next();
+                String[] parts = line.split("\t");
+                countryCodeToCountry.put(parts[2], parts[0]);
+                countryToCountryCode.put(parts[0], parts[2]);
+            cities.add("Toronto");
+            cities.add("Vancouver");
+            System.out.println(cities.get(0));
+        }
+            this("country-codes.txt");
+
+
+
+
+
+
+        }
+
+        /**
+         * Overloaded constructor that allows us to specify the filename to load the country code data from.
+         * @param filename the name of the file in the resources folder to load the data from
+         * @throws RuntimeException if the resources file can't be loaded properly
+         */
+    public CountryCodeConverter(String filename) {
+
+
+
+
+
+
+        JPanel mainPanel = new JPanel();
+        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+        mainPanel.add(languageComboBox);
+        mainPanel.add(translationLabel);
+        mainPanel.add(countriesJList);
+
+        JFrame frame = new JFrame("Country Name Translator");
+        frame.setContentPane(mainPanel);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.pack();
+        frame.setVisible(true);
+    }
+}
+
+
+
+
 
 
 // TODO Task D: Update the GUI for the program to align with UI shown in the README example.
