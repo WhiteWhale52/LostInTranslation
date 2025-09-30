@@ -186,7 +186,7 @@ to the two new languages that were implemented!
 These three sets of TODO tasks relate to the actual translation, converting
 language codes, and converting country codes.
 
-- [ ] **Divide up these three tasks across your team and complete them. We recommend working in pairs for these tasks, with each pair making
+- [X] **Divide up these three tasks across your team and complete them. We recommend working in pairs for these tasks, with each pair making
   a PR, but you can also subdivide these tasks.**
 
 > Once these are implemented, the provided tests should all pass.
