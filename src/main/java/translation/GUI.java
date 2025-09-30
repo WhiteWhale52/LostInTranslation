@@ -1,88 +1,159 @@
 package translation;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import javax.swing.*;
 import java.awt.event.*;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 
-import static jdk.internal.org.jline.utils.InfoCmp.Capability.lines;
-
 // create a
-public class Gui_new {
-    public static void main(String[] args) throws URISyntaxException, IOException {
+public class GUI {
+    public static void main(String[] args) {
 
-        JComboBox<String> languageComboBox = new JComboBox<>();
+        // for later use:
+        LanguageCodeConverter languageconverter = new LanguageCodeConverter();
+        CountryCodeConverter countryconverter = new CountryCodeConverter();
+
+
+        //  --- selection menu for languages: ComboBox ---
+        List<String> languages = new ArrayList<>(); //create ArrayList for countries
+        try {
+            // read file content into string
+            String content = new String(Files.readAllBytes(Paths.get("src/main/resources/sample.json")));
+            // parse as a JSON array
+            JSONArray arr = new JSONArray(content);
+            JSONObject obj = arr.getJSONObject(0);
+            // get all keys
+            Iterator<String> keys = obj.keys();
+            // loop through each key name
+            while (keys.hasNext()) {
+                String key = keys.next();
+                // skip first three
+                if (key.equals("id") || key.equals("alpha2") || key.equals("alpha3")) {
+                    continue;
+                }
+                // get language and add to list
+                String translated = languageconverter.fromLanguageCode(key);
+                if (translated.charAt((translated.length()) - 1) == ',') {
+                    languages.add(translated.substring(0, translated.length() - 1));
+                } else {
+                    languages.add(translated);
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        // create ComboBox for choosing languages
+        JComboBox<String> languageComboBox = new JComboBox<>(languages.toArray(new String[0]));
+        languageComboBox.setSelectedItem("German");
         // add items into this box
 
+
+        // --- middle translation panel ---
         JPanel middlePanel = new JPanel();
         JLabel translationLabel = new JLabel("Translation:");
         middlePanel.add(translationLabel);
-        JLabel resultLabel = new JLabel("\t\t\t\t\t\t\t");
+        JLabel resultLabel = new JLabel(" ");
         middlePanel.add(resultLabel);
 
-        JList<String> countriesJList = new JList<>();
-        // add countries to this list
 
+        // --- JList: a list of all countries ---
+        List<String> countries = new ArrayList<>(); //create ArrayList for countries
+        try {
+            // Read file content into a String
+            String content = new String(Files.readAllBytes(Paths.get("src/main/resources/sample.json")));
 
-        // method to get all the country names from the country-codes file
-        // this is for the JList
-        public LinkedList<String> CountryCodeConverter() {
+            // Parse as a JSON array
+            JSONArray jsonArray = new JSONArray(content);
 
-            List<String> countries = new LinkedList<>();
-            try {
-                List<String> lines = Files.readAllLines(Paths.get(Gui_new.class
-                        .getClassLoader().getResource("country-codes.txt").toURI()));
+            // Loop through each object in the array
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject obj = jsonArray.getJSONObject(i);
+
+                // Get the country and add it to ArrayList
+                String countrycode = obj.getString("alpha3");
+                String country = countryconverter.fromCountryCode(countrycode);
+                countries.add(country);
             }
-            Iterator<String> iterator = lines.iterator();
-            iterator.next(); // skip the first line
-            while (iterator.hasNext()) {
-                String line = iterator.next();
-                String[] parts = line.split("\t");
-                countryCodeToCountry.put(parts[2], parts[0]);
-                countryToCountryCode.put(parts[0], parts[2]);
-            cities.add("Toronto");
-            cities.add("Vancouver");
-            System.out.println(cities.get(0));
-        }
-            this("country-codes.txt");
 
-
-
-
-
-
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
-        /**
-         * Overloaded constructor that allows us to specify the filename to load the country code data from.
-         * @param filename the name of the file in the resources folder to load the data from
-         * @throws RuntimeException if the resources file can't be loaded properly
-         */
-    public CountryCodeConverter(String filename) {
+        // create JList with countries
+        JList<String> countriesJList = new JList<>(countries.toArray(new String[0]));
+        countriesJList.setVisibleRowCount(8);          // optional: controls initial height
+        JScrollPane countriesScroll = new JScrollPane(countriesJList);
 
 
-
-
-
-
+        // --- main panel ---
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
         mainPanel.add(languageComboBox);
-        mainPanel.add(translationLabel);
-        mainPanel.add(countriesJList);
+        mainPanel.add(middlePanel);
+        mainPanel.add(countriesScroll); // add the scroll pane, not the JList
 
         JFrame frame = new JFrame("Country Name Translator");
         frame.setContentPane(mainPanel);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
         frame.setVisible(true);
+
+
+        // --- Unified update function ---
+        Runnable update = () -> {
+            String language = (String) languageComboBox.getSelectedItem();
+            String country = countriesJList.getSelectedValue();
+
+            if (language != null && country != null) {
+                // get index of country
+                int index = countries.indexOf(country);
+                // get language code
+                String languagecode = languageconverter.fromLanguage(language);
+                // get translated:
+                try {
+                    // Read file content into a String
+                    String content = new String(Files.readAllBytes(Paths.get("src/main/resources/sample.json")));
+
+                    // Parse as a JSON array
+                    JSONArray jsonArray = new JSONArray(content);
+
+                    resultLabel.setText(jsonArray.getJSONObject(index).getString(languagecode));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+            }
+        };
+
+        // --- Attach listeners ---
+        languageComboBox.addActionListener(e -> update.run());
+        countriesJList.addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) update.run();
+        });
     }
 }
+
+
+
+
+
+
+
+        /**
+         * Overloaded constructor that allows us to specify the filename to load the country code data from.
+         * @param filename the name of the file in the resources folder to load the data from
+         * @throws RuntimeException if the resources file can't be loaded properly
+         */
+
 
 
 
@@ -94,7 +165,7 @@ public class Gui_new {
 //            to manually enter the language code they want to use for the translation.
 //            See the examples package for some code snippets that may be useful when updating
 //            the GUI.
-public class GUI {
+/* public class GUI {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
@@ -157,3 +228,4 @@ public class GUI {
         });
     }
 }
+*/
